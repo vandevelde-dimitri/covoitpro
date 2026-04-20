@@ -1,13 +1,14 @@
-import { supabase } from "@/src/infrastructure/supabase";
 import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
 import { setRecoveryFlow } from "./deepLinkFlag";
+import { useRepositories } from "./useRepositories";
 
 export const useSupabaseDeepLink = () => {
   const url = Linking.useURL();
   const router = useRouter();
   const hasProcessed = useRef(false);
+  const { sessionRepository } = useRepositories();
 
   useEffect(() => {
     (async () => {
@@ -55,20 +56,13 @@ export const useSupabaseDeepLink = () => {
           setRecoveryFlow(true);
           if (__DEV__) console.log("[DeepLink] Recovery flow flagged");
 
-          supabase.auth
-            .setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken || "",
-            })
-            .then(({ error }) => {
-              if (__DEV__) {
-                if (error) {
-                  console.error("[DeepLink] setSession error:", error.message);
-                } else {
-                  console.log("[DeepLink] setSession: ✅ OK");
-                }
-              }
-            });
+          try {
+            await sessionRepository.setSession(accessToken, refreshToken || "");
+            if (__DEV__) console.log("[DeepLink] setSession: ✅ OK");
+          } catch (error: any) {
+            if (__DEV__)
+              console.error("[DeepLink] setSession error:", error.message);
+          }
 
           if (__DEV__) console.log("→ Navigation vers /(auth)/reset-password");
 

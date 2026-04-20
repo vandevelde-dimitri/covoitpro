@@ -1,10 +1,10 @@
-import { supabase } from "@/src/infrastructure/supabase";
 import { Session } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { AppState } from "react-native";
 import { getIsRecoveryFlow } from "./deepLinkFlag";
 import { useUserProfileStatus } from "./queries/useUserProfileStatus";
+import { useRepositories } from "./useRepositories";
 
 type AuthContextType = {
   session: Session | null;
@@ -32,6 +32,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profileCompleted, setProfileCompleted] = useState(false);
   const [shouldCheckProfile, setShouldCheckProfile] = useState(false);
   const queryClient = useQueryClient();
+  const { sessionRepository } = useRepositories();
 
   const { data: profileStatus, isLoading: profileLoading } =
     useUserProfileStatus(shouldCheckProfile);
@@ -56,11 +57,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(true);
     if (__DEV__) console.log(" [Auth] Checking profile status...");
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const session = await sessionRepository.getSession();
 
-      if (!user) {
+      if (!session) {
         setProfileCompleted(false);
         setLoading(false);
         return;
@@ -80,10 +79,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const initializeAuth = async () => {
       try {
-        const {
-          data: { session: restoredSession },
-          error,
-        } = await supabase.auth.getSession();
+        const restoredSession = await sessionRepository.getSession();
 
         if (isMounted) {
           if (restoredSession) {
@@ -111,71 +107,72 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     }, 3000);
 
-    const {
-      data: { subscription: authSubscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!isMounted) return;
-
-      setSession(session);
-      if (event === "USER_UPDATED") {
-        if (__DEV__) console.log("[Auth] User updated event detected");
-        // On force la mise à jour de la session pour récupérer le nouvel email
-        console.log("session: ", session);
+    const unsubscribeSession = sessionRepository.onSessionChange(
+      async (event, session) => {
+        if (!isMounted) return;
 
         setSession(session);
-      }
+        if (event === "USER_UPDATED") {
+          if (__DEV__) console.log("[Auth] User updated event detected");
+          // On force la mise à jour de la session pour récupérer le nouvel email
+          console.log("session: ", session);
 
-      const inRecoveryFlow = getIsRecoveryFlow();
-
-      if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
-        if (inRecoveryFlow) {
-          if (__DEV__)
-            console.log(
-              "[Auth] Recovery flow detected - skipping profile check",
-            );
-          setLoading(false);
-        } else {
-          await checkProfileStatus();
+          setSession(session);
         }
-      } else if (event === "SIGNED_OUT") {
-        setProfileCompleted(false);
-        setLoading(false);
-      }
 
-      clearTimeout(initTimeoutId);
-    });
+        const inRecoveryFlow = getIsRecoveryFlow();
+
+        if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+          if (inRecoveryFlow) {
+            if (__DEV__)
+              console.log(
+                "[Auth] Recovery flow detected - skipping profile check",
+              );
+            setLoading(false);
+          } else {
+            await checkProfileStatus();
+          }
+        } else if (event === "SIGNED_OUT") {
+          setProfileCompleted(false);
+          setLoading(false);
+        }
+
+        clearTimeout(initTimeoutId);
+      },
+    );
 
     const subscriptionAppState = AppState.addEventListener(
       "change",
       (state) => {
-        if (state === "active") supabase.auth.startAutoRefresh();
-        else supabase.auth.stopAutoRefresh();
+        // Note: startAutoRefresh/stopAutoRefresh pourraient être ajoutés à ISessionRepository
+        // Pour l'instant, on peut laisser cette logique ou la déplacer plus tard
       },
     );
 
     return () => {
       isMounted = false;
       clearTimeout(initTimeoutId);
-      authSubscription.unsubscribe();
+      unsubscribeSession();
       subscriptionAppState.remove();
     };
-  }, []);
+  }, [sessionRepository]);
 
   const refreshSession = async () => {
-    const { data, error } = await supabase.auth.refreshSession();
-    if (error) {
+    try {
+      await sessionRepository.refreshSession();
+      const updatedSession = await sessionRepository.getSession();
+      if (updatedSession) {
+        setSession(updatedSession);
+        await checkProfileStatus();
+      }
+    } catch (error) {
       if (__DEV__) console.error("Refresh session error:", error);
-      return;
-    }
-    if (data.session) {
-      setSession(data.session);
-      await checkProfileStatus();
     }
   };
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
+      await sessionRepository.logout();
 
       queryClient.clear();
 

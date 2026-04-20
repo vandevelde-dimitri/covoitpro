@@ -1,7 +1,7 @@
-import { supabase } from "@/src/infrastructure/supabase";
 import { useQueryClient } from "@tanstack/react-query";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useAuth } from "../authContext";
+import { useRepositories } from "../useRepositories";
 
 type NotificationContextType = {
   notificationCount: number;
@@ -23,6 +23,7 @@ export const NotificationProvider = ({
   const { session } = useAuth();
   const userId = session?.user.id;
   const queryClient = useQueryClient();
+  const { notificationSubscriptionRepository } = useRepositories();
   const [notificationCount, setNotificationCount] = useState(0);
 
   const hasNewNotification = notificationCount > 0;
@@ -31,34 +32,36 @@ export const NotificationProvider = ({
     if (!userId) return;
 
     const fetchCount = async () => {
-      const { data } = await supabase.rpc("get_unread_notification_count");
-      if (data !== null) setNotificationCount(data);
+      try {
+        const count =
+          await notificationSubscriptionRepository.getUnreadNotificationCount();
+        setNotificationCount(count);
+      } catch (error) {
+        if (__DEV__)
+          console.error("[NotificationContext] Error fetching count:", error);
+      }
     };
     fetchCount();
 
-    const channel = supabase
-      .channel(`user-notifications-${userId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "participant_requests" },
-        (payload) => {
-          const { owner_id } = payload.new as { owner_id: string };
-
-          if (owner_id === userId) {
-            setNotificationCount((prev) => prev + 1);
-
-            queryClient.invalidateQueries({
-              queryKey: ["notifications", "combined"],
-            });
-          }
+    const unsubscribe =
+      notificationSubscriptionRepository.subscribeToNotifications(
+        userId,
+        (count) => {
+          setNotificationCount(count);
+          queryClient.invalidateQueries({
+            queryKey: ["notifications", "combined"],
+          });
         },
-      )
-      .subscribe();
+        (error) => {
+          if (__DEV__)
+            console.error("[NotificationContext] Subscription error:", error);
+        },
+      );
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
-  }, [userId, queryClient]);
+  }, [userId, notificationSubscriptionRepository, queryClient]);
 
   return (
     <NotificationContext.Provider

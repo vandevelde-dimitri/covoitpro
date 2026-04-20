@@ -39,4 +39,20 @@ export class SupabaseMessagingRepository implements IMessagingRepository {
       throw error;
     }
   }
+
+  async markConversationRead(
+    conversationId: string,
+    userId: string,
+  ): Promise<void> {
+    const { error } = await supabase
+      .from("conversation_participants")
+      .update({ last_read_at: new Date().toISOString() })
+      .eq("conversation_id", conversationId)
+      .eq("user_id", userId);
+
+    if (error) {
+      if (__DEV__) console.error("Détail erreur Supabase (Mark Read):", error);
+      throw error;
+    }
+  }
 }

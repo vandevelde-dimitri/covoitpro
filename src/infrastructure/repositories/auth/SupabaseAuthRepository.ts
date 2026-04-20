@@ -62,4 +62,18 @@ export class SupabaseAuthRepository implements IAuthRepository {
 
     if (error) throw new Error(error.message);
   }
+
+  async getCurrentUserId(): Promise<string> {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      if (__DEV__) console.error("Get current user error:", error?.message);
+      throw new Error("Utilisateur non authentifié");
+    }
+
+    return user.id;
+  }
 }
