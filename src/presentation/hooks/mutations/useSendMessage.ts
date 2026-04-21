@@ -3,7 +3,7 @@ import { SupabaseChatRepository } from "@/src/infrastructure/repositories/Supaba
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 
-export const useSendMessage = (conversationId: string) => {
+export const useSendMessage = (conversationId: string, userId: string) => {
   const queryClient = useQueryClient();
 
   const sendMessageUseCase = useMemo(() => {
@@ -12,15 +12,15 @@ export const useSendMessage = (conversationId: string) => {
   }, []);
 
   return useMutation({
-    mutationFn: ({ content }: { userId: string; content: string }) =>
+    mutationFn: ({ content }: { content: string }) =>
       sendMessageUseCase.execute(conversationId, content),
 
     onError: (error) => {
       if (__DEV__) console.error("Erreur lors de l'envoi du message :", error);
     },
-    onSuccess: async (_, variables) => {
+    onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["conversations", variables.userId],
+        queryKey: ["conversations", userId],
       });
     },
   });

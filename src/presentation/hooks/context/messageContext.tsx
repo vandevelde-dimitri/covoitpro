@@ -84,7 +84,7 @@ export const MessageProvider = ({
           [conversationId]: true,
         }));
         queryClient.invalidateQueries({
-          queryKey: ["user-conversations", userId],
+          queryKey: ["conversations", userId],
         });
       },
       (error) => {

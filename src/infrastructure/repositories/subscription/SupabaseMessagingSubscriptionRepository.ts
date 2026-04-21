@@ -49,7 +49,12 @@ export class SupabaseMessagingSubscriptionRepository implements IMessagingSubscr
     let retryCount = 0;
     const maxRetries = 3;
 
+    let retryTimeout: ReturnType<typeof setTimeout> | null = null;
+    let isCancelled = false;
+
     const subscribe = () => {
+      if (isCancelled) return;
+
       channel = supabase
         .channel("messages-global")
         .on(
@@ -61,39 +66,41 @@ export class SupabaseMessagingSubscriptionRepository implements IMessagingSubscr
               conversation_id: string;
             };
 
-            // Ne pas marquer comme non lue si c'est nous qui envoyons ou si c'est la conversation active
             if (
               msg.sender_id === userId ||
               msg.conversation_id === activeConversationId
-            ) {
+            )
               return;
-            }
 
             onNewMessage(msg.conversation_id);
           },
         )
-        .on("subscribe", () => {
-          if (__DEV__) console.log("[MessagingSubscription] Subscribed");
-          retryCount = 0;
-          onStatusChange("SUBSCRIBED");
-        })
-        .on("error", (error) => {
-          if (__DEV__) console.error("[MessagingSubscription] Error:", error);
-          onStatusChange("CHANNEL_ERROR");
-          onError(new Error(error.message));
+        .subscribe((status) => {
+          if (isCancelled) return;
 
-          if (retryCount < maxRetries) {
-            retryCount++;
-            const delay = Math.pow(2, retryCount) * 1000;
-            setTimeout(() => subscribe(), delay);
+          if (status === "SUBSCRIBED") {
+            if (__DEV__) console.log("[MessagingSubscription] Subscribed");
+            retryCount = 0;
+            onStatusChange("SUBSCRIBED");
+          } else if (status === "CHANNEL_ERROR") {
+            if (__DEV__) console.error("[MessagingSubscription] Channel error");
+            onStatusChange("CHANNEL_ERROR");
+            onError(new Error("Channel error"));
+
+            if (retryCount < maxRetries) {
+              retryCount++;
+              const delay = Math.pow(2, retryCount) * 1000;
+              retryTimeout = setTimeout(() => subscribe(), delay);
+            }
           }
-        })
-        .subscribe();
+        });
     };
 
     subscribe();
 
     return () => {
+      isCancelled = true;
+      if (retryTimeout) clearTimeout(retryTimeout);
       supabase.removeChannel(channel);
     };
   }

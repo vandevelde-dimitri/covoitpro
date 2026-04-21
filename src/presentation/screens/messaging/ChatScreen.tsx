@@ -50,8 +50,10 @@ export default function ChatScreen({
     connectionStatus,
   } = useChatMessages(conversationId, userId);
 
-  const { mutate: sendMessage, isPending: isSending } =
-    useSendMessage(conversationId);
+  const { mutate: sendMessage, isPending: isSending } = useSendMessage(
+    conversationId,
+    userId,
+  );
 
   const messages = data?.pages.flat() ?? [];
 
@@ -59,7 +61,7 @@ export default function ChatScreen({
     if (!messageText.trim() || isSending) return;
 
     sendMessage(
-      { userId, content: messageText },
+      { content: messageText },
       {
         onSuccess: () => setMessageText(""),
       },

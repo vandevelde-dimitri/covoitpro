@@ -21,33 +21,40 @@ import { SupabaseNotificationRepository } from "@/src/infrastructure/repositorie
 import { SupabaseParticipantRepository } from "@/src/infrastructure/repositories/SupabaseParticipantRepository";
 import { SupabaseSettingsRepository } from "@/src/infrastructure/repositories/SupabaseSettingRepository";
 import { SupabaseUserRepository } from "@/src/infrastructure/repositories/SupabaseUserRepository";
+import { useMemo } from "react";
 
-export const useRepositories = () => ({
-  // Auth & Session
-  authRepository: SupabaseAuthRepository.getInstance(),
-  sessionRepository: SupabaseSessionRepository.getInstance(),
+export const useRepositories = () => {
+  return useMemo(
+    () => ({
+      // Auth & Session
+      authRepository: SupabaseAuthRepository.getInstance(),
+      sessionRepository: SupabaseSessionRepository.getInstance(),
 
-  // User
-  userRepository: SupabaseUserRepository.getInstance(),
-  contactRepository: SupabaseContactRepository.getInstance(),
+      // User
+      userRepository: SupabaseUserRepository.getInstance(),
+      contactRepository: SupabaseContactRepository.getInstance(),
 
-  // Announcements & Messaging
-  announcementRepository: SupabaseAnnouncementRepository.getInstance(),
-  messagingRepository: SupabaseMessagingRepository.getInstance(),
-  participantRepository: SupabaseParticipantRepository.getInstance(),
-  chatRepository: SupabaseChatRepository.getInstance(),
+      // Announcements & Messaging
+      announcementRepository: SupabaseAnnouncementRepository.getInstance(),
+      messagingRepository: SupabaseMessagingRepository.getInstance(),
+      participantRepository: SupabaseParticipantRepository.getInstance(),
+      chatRepository: SupabaseChatRepository.getInstance(),
 
-  // Subscriptions
-  messagingSubscriptionRepository:
-    SupabaseMessagingSubscriptionRepository.getInstance(),
-  notificationSubscriptionRepository:
-    SupabaseNotificationSubscriptionRepository.getInstance(),
-  chatSubscriptionRepository: SupabaseChatSubscriptionRepository.getInstance(),
+      // Subscriptions
+      messagingSubscriptionRepository:
+        SupabaseMessagingSubscriptionRepository.getInstance(),
+      notificationSubscriptionRepository:
+        SupabaseNotificationSubscriptionRepository.getInstance(),
+      chatSubscriptionRepository:
+        SupabaseChatSubscriptionRepository.getInstance(),
 
-  // Other
-  favoriteRepository: SupabaseFavoriteRepository.getInstance(),
-  notificationRepository: SupabaseNotificationRepository.getInstance(),
-  settingRepository: SupabaseSettingsRepository.getInstance(),
-});
+      // Other
+      favoriteRepository: SupabaseFavoriteRepository.getInstance(),
+      notificationRepository: SupabaseNotificationRepository.getInstance(),
+      settingRepository: SupabaseSettingsRepository.getInstance(),
+    }),
+    [],
+  );
+};
 
 export type RepositoriesType = ReturnType<typeof useRepositories>;

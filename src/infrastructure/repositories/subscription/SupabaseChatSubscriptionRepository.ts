@@ -28,7 +28,7 @@ export class SupabaseChatSubscriptionRepository implements IChatSubscriptionRepo
     let channel: any = null;
     let retryCount = 0;
     const maxRetries = 3;
-    let statusTimeout: NodeJS.Timeout | null = null;
+    let statusTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const subscribe = () => {
       // Nettoyer l'ancien channel si nécessaire
@@ -110,9 +110,18 @@ export class SupabaseChatSubscriptionRepository implements IChatSubscriptionRepo
         });
     };
 
-    subscribe();
+    let isCancelled = false;
+    const originalSubscribe = subscribe;
+
+    // Wrapper pour bloquer les appels post-unmount
+    const safeSubscribe = () => {
+      if (!isCancelled) originalSubscribe();
+    };
+
+    safeSubscribe();
 
     return () => {
+      isCancelled = true;
       if (statusTimeout) clearTimeout(statusTimeout);
       if (channel) {
         supabase.removeChannel(channel);
