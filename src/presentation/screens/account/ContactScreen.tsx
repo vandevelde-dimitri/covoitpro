@@ -47,7 +47,6 @@ export default function ContactScreen() {
   });
 
   const onSubmit = (formData: { subject: string; message: string }) => {
-    // Récupérer les données utilisateur automatiquement
     const contactMessage: ContactMessage = {
       name: user?.firstName
         ? `${user.firstName} ${user.lastName || ""}`.trim()

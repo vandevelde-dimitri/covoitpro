@@ -1,10 +1,13 @@
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRepositories } from "../useRepositories";
 
 export const useChatMessages = (conversationId: string, userId: string) => {
   const queryClient = useQueryClient();
   const { chatRepository, chatSubscriptionRepository } = useRepositories();
+  const [connectionStatus, setConnectionStatus] = useState<
+    "SUBSCRIBED" | "CHANNEL_ERROR" | "LOADING"
+  >("LOADING");
 
   const query = useInfiniteQuery({
     queryKey: ["messages", conversationId],
@@ -57,6 +60,9 @@ export const useChatMessages = (conversationId: string, userId: string) => {
         if (__DEV__)
           console.error("[useChatMessages] Subscription error:", error);
       },
+      (status) => {
+        setConnectionStatus(status);
+      },
     );
 
     return () => {
@@ -64,5 +70,8 @@ export const useChatMessages = (conversationId: string, userId: string) => {
     };
   }, [conversationId, userId, chatSubscriptionRepository, queryClient]);
 
-  return query;
+  return {
+    ...query,
+    connectionStatus,
+  };
 };

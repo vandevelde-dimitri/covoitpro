@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import { Control, Controller } from "react-hook-form";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { useDebounce } from "../../hooks/useDebounce"; // Ton hook perso
+import { useDebounce } from "../../hooks/useDebounce";
 
 interface FormInputProps {
   control: Control<any>;
@@ -23,11 +23,8 @@ export const FormInputCity = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
-
-  // On applique ton hook sur le terme de recherche
   const debouncedSearchTerm = useDebounce(searchTerm, 400);
 
-  // Effet qui se déclenche quand la valeur debouncée change
   useEffect(() => {
     const fetchCities = async () => {
       if (debouncedSearchTerm.length < 3) {
@@ -80,8 +77,8 @@ export const FormInputCity = ({
               }}
               value={value}
               onChangeText={(text) => {
-                onChange(text); // Met à jour le formulaire
-                setSearchTerm(text); // Déclenche le debounce
+                onChange(text);
+                setSearchTerm(text);
               }}
             />
           </View>
@@ -94,8 +91,8 @@ export const FormInputCity = ({
                   style={styles.suggestionItem}
                   onPress={() => {
                     const cityName = `${item.properties.name} (${item.properties.postcode})`;
-                    onChange(cityName); // Remplit le formulaire
-                    setSearchTerm(""); // Reset la recherche
+                    onChange(cityName);
+                    setSearchTerm("");
                     setShowDropdown(false);
                   }}
                 >
@@ -142,15 +139,15 @@ const styles = StyleSheet.create({
   errorText: { color: "#991B1B", marginTop: 4, fontSize: 12 },
   dropdown: {
     position: "absolute",
-    top: 90, // Juste en dessous de l'input
+    top: 90,
     left: 0,
     right: 0,
     backgroundColor: "#1E293B",
     borderRadius: 15,
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.1)",
-    elevation: 5, // Ombre Android
-    shadowColor: "#000", // Ombre iOS
+    elevation: 5,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     zIndex: 2000,

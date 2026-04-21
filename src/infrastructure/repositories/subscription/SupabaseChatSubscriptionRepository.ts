@@ -1,8 +1,5 @@
 import { IChatSubscriptionRepository } from "@/src/domain/repositories/ChatSubscriptionRepository";
-import {
-  MessageDto,
-  MessageMapper,
-} from "@/src/infrastructure/mappers/MessageMapper";
+import { MessageMapper } from "@/src/infrastructure/mappers/MessageMapper";
 import { supabase } from "../../supabase";
 
 export class SupabaseChatSubscriptionRepository implements IChatSubscriptionRepository {
@@ -23,64 +20,103 @@ export class SupabaseChatSubscriptionRepository implements IChatSubscriptionRepo
     userId: string,
     onNewMessage: (message: any) => void,
     onError?: (error: Error) => void,
+    onStatusChange?: (
+      status: "SUBSCRIBED" | "CHANNEL_ERROR" | "LOADING",
+    ) => void,
   ): () => void {
-    const channel = supabase
-      .channel(`chat:${conversationId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        async (payload) => {
-          try {
-            const newMessage = payload.new as MessageDto;
+    onStatusChange?.("LOADING");
+    let channel: any = null;
+    let retryCount = 0;
+    const maxRetries = 3;
+    let statusTimeout: NodeJS.Timeout | null = null;
 
-            // Récupérer les données utilisateur pour mapper le message
-            const { data: userData, error: userError } = await supabase
-              .from("users")
-              .select(
-                "id, firstname, lastname, image_profile, avatar_updated_at, contract",
-              )
-              .eq("id", newMessage.sender_id)
-              .single();
+    const subscribe = () => {
+      // Nettoyer l'ancien channel si nécessaire
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
 
-            if (userError) {
+      channel = supabase
+        .channel(`chat:${conversationId}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "messages",
+            filter: `conversation_id=eq.${conversationId}`,
+          },
+          async (payload: any) => {
+            try {
+              const newMessage = payload.new as any;
+
+              // Récupérer les données utilisateur pour mapper le message
+              const { data: userData, error: userError } = await supabase
+                .from("users")
+                .select(
+                  "id, firstname, lastname, image_profile, avatar_updated_at, contract",
+                )
+                .eq("id", newMessage.sender_id)
+                .single();
+
+              if (userError) {
+                if (__DEV__)
+                  console.error(
+                    "[ChatSubscription] User fetch error:",
+                    userError,
+                  );
+                if (onError) onError(new Error(userError.message));
+                return;
+              }
+
+              const mappedMessage = MessageMapper.toDomain(
+                { ...newMessage, users: userData },
+                userId,
+              );
+
+              onNewMessage(mappedMessage);
+            } catch (error) {
               if (__DEV__)
                 console.error(
-                  "[ChatSubscription] User fetch error:",
-                  userError,
+                  "[ChatSubscription] Error processing message:",
+                  error,
                 );
-              if (onError) onError(new Error(userError.message));
-              return;
+              if (onError) onError(error as Error);
             }
-
-            const mappedMessage = MessageMapper.toDomain(
-              { ...newMessage, users: userData },
-              userId,
+          },
+        )
+        .subscribe((status) => {
+          if (__DEV__)
+            console.log(
+              `[ChatSubscription] Subscribe status: ${status} for conversation ${conversationId}`,
             );
 
-            onNewMessage(mappedMessage);
-          } catch (error) {
-            if (__DEV__)
-              console.error(
-                "[ChatSubscription] Error processing message:",
-                error,
-              );
-            if (onError) onError(error as Error);
+          if (status === "SUBSCRIBED") {
+            retryCount = 0;
+            if (statusTimeout) clearTimeout(statusTimeout);
+            onStatusChange?.("SUBSCRIBED");
+          } else if (status === "CHANNEL_ERROR") {
+            onStatusChange?.("CHANNEL_ERROR");
+            if (retryCount < maxRetries) {
+              retryCount++;
+              const delay = Math.pow(2, retryCount) * 1000;
+              if (__DEV__)
+                console.log(
+                  `[ChatSubscription] Retrying in ${delay}ms (attempt ${retryCount}/${maxRetries})`,
+                );
+              statusTimeout = setTimeout(() => subscribe(), delay);
+            }
           }
-        },
-      )
-      .on("error", (error) => {
-        if (__DEV__) console.error("[ChatSubscription] Channel error:", error);
-        if (onError) onError(new Error(error.message));
-      })
-      .subscribe();
+        });
+    };
+
+    subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (statusTimeout) clearTimeout(statusTimeout);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }
 }

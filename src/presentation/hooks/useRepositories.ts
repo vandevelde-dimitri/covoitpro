@@ -15,11 +15,11 @@ import { SupabaseNotificationSubscriptionRepository } from "@/src/infrastructure
 import { SupabaseAnnouncementRepository } from "@/src/infrastructure/repositories/SupabaseAnnouncementRepository";
 import { SupabaseChatRepository } from "@/src/infrastructure/repositories/SupabaseChatRepository";
 import { SupabaseContactRepository } from "@/src/infrastructure/repositories/SupabaseContactRepository";
-import { SupbaseFavoriteRepository } from "@/src/infrastructure/repositories/SupabaseFavoriteRepository";
+import { SupabaseFavoriteRepository } from "@/src/infrastructure/repositories/SupabaseFavoriteRepository";
 import { SupabaseMessagingRepository } from "@/src/infrastructure/repositories/SupabaseMessagingRepository";
 import { SupabaseNotificationRepository } from "@/src/infrastructure/repositories/SupabaseNotificationRepository";
-import { SupbaseParticipantRepository } from "@/src/infrastructure/repositories/SupabaseParticipantRepository";
-import { SupabaseSettingRepository } from "@/src/infrastructure/repositories/SupabaseSettingRepository";
+import { SupabaseParticipantRepository } from "@/src/infrastructure/repositories/SupabaseParticipantRepository";
+import { SupabaseSettingsRepository } from "@/src/infrastructure/repositories/SupabaseSettingRepository";
 import { SupabaseUserRepository } from "@/src/infrastructure/repositories/SupabaseUserRepository";
 
 export const useRepositories = () => ({
@@ -34,7 +34,7 @@ export const useRepositories = () => ({
   // Announcements & Messaging
   announcementRepository: SupabaseAnnouncementRepository.getInstance(),
   messagingRepository: SupabaseMessagingRepository.getInstance(),
-  participantRepository: SupbaseParticipantRepository.getInstance(),
+  participantRepository: SupabaseParticipantRepository.getInstance(),
   chatRepository: SupabaseChatRepository.getInstance(),
 
   // Subscriptions
@@ -45,10 +45,9 @@ export const useRepositories = () => ({
   chatSubscriptionRepository: SupabaseChatSubscriptionRepository.getInstance(),
 
   // Other
-  favoriteRepository: SupbaseFavoriteRepository.getInstance(),
+  favoriteRepository: SupabaseFavoriteRepository.getInstance(),
   notificationRepository: SupabaseNotificationRepository.getInstance(),
-  settingRepository: SupabaseSettingRepository.getInstance(),
+  settingRepository: SupabaseSettingsRepository.getInstance(),
 });
 
-// Type helper pour accéder aux types des repositories
 export type RepositoriesType = ReturnType<typeof useRepositories>;

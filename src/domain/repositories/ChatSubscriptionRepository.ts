@@ -1,6 +1,3 @@
-/**
- * Interface pour gérer les subscriptions aux messages de chat
- */
 export interface IChatSubscriptionRepository {
   /**
    * S'abonne aux nouveaux messages d'une conversation
@@ -10,5 +7,8 @@ export interface IChatSubscriptionRepository {
     userId: string,
     onNewMessage: (message: any) => void,
     onError?: (error: Error) => void,
+    onStatusChange?: (
+      status: "SUBSCRIBED" | "CHANNEL_ERROR" | "LOADING",
+    ) => void,
   ): () => void;
 }

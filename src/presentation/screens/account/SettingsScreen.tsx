@@ -33,7 +33,6 @@ export default function SettingsScreen() {
   const { session } = useAuth();
   const toast = useToast();
 
-  // Une seule source de vérité pour l'email de la session
   const sessionEmail = session?.user?.email;
 
   const {
@@ -50,7 +49,6 @@ export default function SettingsScreen() {
   const { mutate: updatePassword, isPending: isUpdatingPassword } =
     useUpdatePassword();
 
-  // --- SCHEMAS DE VALIDATION ---
   const settingsSchema = yup.object({
     vibrations: yup.boolean(),
     notificationPush: yup.boolean(),
@@ -69,7 +67,6 @@ export default function SettingsScreen() {
       .required("Mot de passe requis"),
   });
 
-  // --- FORMS ---
   const emailForm = useForm({
     resolver: yupResolver(emailSchema),
     defaultValues: { email: sessionEmail ?? "" },
@@ -90,7 +87,6 @@ export default function SettingsScreen() {
     },
   });
 
-  // --- SYNC DES SETTINGS ---
   useEffect(() => {
     if (settings) {
       settingsForm.reset({
@@ -102,12 +98,9 @@ export default function SettingsScreen() {
     }
   }, [settings, settingsForm]);
 
-  // --- SYNC DE L'EMAIL (Correction du switch) ---
   useEffect(() => {
     const currentFormValue = emailForm.getValues("email");
 
-    // On ne reset QUE si l'email session est différent de l'UI
-    // et que l'utilisateur n'est pas en train de modifier le champ
     if (
       sessionEmail &&
       sessionEmail !== currentFormValue &&
@@ -139,9 +132,6 @@ export default function SettingsScreen() {
       </ScreenWrapper>
     );
   }
-
-  //? session de base
-  console.log("session de base: ", session);
 
   return (
     <ScreenWrapper showBackButton={true} title="Paramètres">

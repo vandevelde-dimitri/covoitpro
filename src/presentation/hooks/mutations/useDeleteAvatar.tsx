@@ -1,7 +1,7 @@
 import { SupabaseUserRepository } from "@/src/infrastructure/repositories/SupabaseUserRepository";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { DeleteAvatarUseCase } from "../../../application/use-case/user/deleteAvatar";
+import { DeleteAvatarUseCase } from "../../../application/use-case/user/DeleteAvatar";
 import { CustomToast } from "../../components/ui/CustomToast";
 import { useToast } from "../../components/ui/molecules/Toast";
 

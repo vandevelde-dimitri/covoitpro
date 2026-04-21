@@ -165,11 +165,6 @@ export const Toast: React.FC<ToastProps> = ({ toast, index }) => {
     });
 
     setTimeout(() => {
-      // opacity.value = withTiming(1, {
-      //   duration: 500,
-      //   easing: Easing.bezier(0.25, 0.46, 0.45, 0.94),
-      // });
-
       translateY.value = withSpring(getStackOffset(), {
         damping: 28,
         stiffness: 140,

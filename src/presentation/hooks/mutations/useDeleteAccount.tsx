@@ -1,9 +1,10 @@
 import { SupabaseUserRepository } from "@/src/infrastructure/repositories/SupabaseUserRepository";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { DeleteAccountUseCase } from "../../../application/use-case/user/deleteAccount";
+import { DeleteAccountUseCase } from "../../../application/use-case/user/DeleteAccount";
 import { CustomToast } from "../../components/ui/CustomToast";
 import { useToast } from "../../components/ui/molecules/Toast";
+
 import { useAuth } from "../authContext";
 
 export const useDeleteAccount = () => {

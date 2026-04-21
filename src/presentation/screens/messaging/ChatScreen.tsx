@@ -31,8 +31,7 @@ export default function ChatScreen({
   const { session } = useAuth();
   const userId = session?.user.id ?? "";
   const [messageText, setMessageText] = useState("");
-  const { markConversationRead, setActiveConversation, connectionStatus } =
-    useMessageStatus();
+  const { markConversationRead, setActiveConversation } = useMessageStatus();
 
   useEffect(() => {
     setActiveConversation(conversationId);
@@ -42,8 +41,14 @@ export default function ChatScreen({
     };
   }, [conversationId, markConversationRead, setActiveConversation]);
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
-    useChatMessages(conversationId, userId);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    connectionStatus,
+  } = useChatMessages(conversationId, userId);
 
   const { mutate: sendMessage, isPending: isSending } =
     useSendMessage(conversationId);
