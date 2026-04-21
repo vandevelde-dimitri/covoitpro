@@ -273,7 +273,7 @@ Infrastructure/mappers/ → Convertit API Supabase → Entities Domain
 
 ```bash
 git clone <votre-url-repo>
-cd coworkers
+cd covoitpro
 ```
 
 #### 2. Installer les Dépendances

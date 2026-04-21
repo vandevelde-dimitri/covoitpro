@@ -74,7 +74,7 @@ export default function RegisterScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.welcomeTitle}>Rejoignez l'aventure</Text>
           <Text style={styles.welcomeSubtitle}>
-            Créez votre compte Coworkers en 1 minute.
+            Créez votre compte Covoit'Pro en 1 minute.
           </Text>
 
           <View style={{ marginTop: 30 }}>
@@ -121,7 +121,7 @@ export default function RegisterScreen() {
               <Text
                 style={styles.linkText}
                 onPress={() =>
-                  Linking.openURL("https://coworkers-legal.vercel.app/")
+                  Linking.openURL("https://www.covoit.app/mentions-legales")
                 }
               >
                 Mentions Légales
@@ -130,9 +130,7 @@ export default function RegisterScreen() {
               <Text
                 style={styles.linkText}
                 onPress={() =>
-                  Linking.openURL(
-                    "https://coworkers-legal.vercel.app/politique_confidentialite",
-                  )
+                  Linking.openURL("https://www.covoit.app/confidentialite")
                 }
               >
                 Politique de Confidentialité

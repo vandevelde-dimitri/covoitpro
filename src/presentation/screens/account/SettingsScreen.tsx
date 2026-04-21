@@ -260,16 +260,14 @@ export default function SettingsScreen() {
         <MenuDisclosureSection title="Informations Légales">
           <MenuItem
             onPress={() =>
-              Linking.openURL(
-                "https://coworkers-legal.vercel.app/politique_confidentialite",
-              )
+              Linking.openURL("https://www.covoit.app/confidentialite")
             }
             icon="shield-checkmark-outline"
             label="Politique de Confidentialité"
           />
           <MenuItem
             onPress={() =>
-              Linking.openURL("https://coworkers-legal.vercel.app/")
+              Linking.openURL("https://www.covoit.app/mentions-legales")
             }
             icon="document-text-outline"
             label="Mentions Légales"

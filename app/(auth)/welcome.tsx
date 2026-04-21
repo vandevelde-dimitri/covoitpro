@@ -32,7 +32,7 @@ export default function WelcomeScreen() {
         </View>
 
         <View style={styles.textSection}>
-          <Text style={styles.title}>Coworkers</Text>
+          <Text style={styles.title}>Covoit'Pro</Text>
           <Text style={styles.subtitle}>
             Simplifiez vos trajets entre collègues.{"\n"}
             Économisez, partagez, roulez.
@@ -60,7 +60,7 @@ export default function WelcomeScreen() {
           <Text style={styles.versionText}>
             {`Version ${Constants.expoConfig?.version}`}
           </Text>
-          <Text style={styles.copyrightText}>© 2026 CoWorkers Inc.</Text>
+          <Text style={styles.copyrightText}>© 2026 Covoit'Pro Inc.</Text>
         </View>
       </View>
     </View>
