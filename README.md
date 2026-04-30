@@ -408,7 +408,7 @@ Ce projet est sous licence **MIT**. Voir le fichier [LICENSE](LICENSE) pour plus
 
 ## 📞 Support & Contact
 
-- 📧 Email : support@covoitpro.com
+- 📧 Email : support@covoit.app
 - 🐛 Issues : [GitHub Issues](https://github.com/yourusername/covoitpro/issues)
 - 💬 Discussions : [GitHub Discussions](https://github.com/yourusername/covoitpro/discussions)
 
