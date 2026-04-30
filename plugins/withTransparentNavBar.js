@@ -2,6 +2,8 @@ const { withAppBuildGradle } = require("@expo/config-plugins");
 const fs = require("fs");
 const path = require("path");
 
+//? This plugin modifies the Android styles.xml to set enforceNavigationBarContrast to false, allowing for a transparent navigation bar on Android 10 and above.
+
 module.exports = function withTransparentNavBar(config) {
   return withAppBuildGradle(config, (config) => {
     const stringsPath = path.join(
